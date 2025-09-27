@@ -54,8 +54,8 @@ module Bot
     #   rst[:video]
     # end
 
-    def webhook_callback(payload, record)
-      callback(payload, record)
+    def webhook_callback(record)
+      callback(record)
     end
 
     def polling(ai_call, task_id, image)

@@ -6,7 +6,7 @@ class ReplicateWebhook
   def call(prediction)
     record = AigcWebhook.create!(data: prediction)
 
-    AigcCallbackJob.perform_later(prediction, record)
+    AigcCallbackJob.perform_later(record)
   end
 end
 

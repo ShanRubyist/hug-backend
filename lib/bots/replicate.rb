@@ -44,7 +44,8 @@ module Bot
       prediction
     end
 
-    def callback(prediction, webhook_record)
+    def callback(webhook_record)
+      prediction = webhook_record.data
       return unless prediction.succeeded? || prediction.failed? || prediction.canceled?
 
       ai_call = AiCall.find_by_task_id(prediction.id)

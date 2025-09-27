@@ -62,7 +62,7 @@ class Api::V1::AiController < UsageController
   def gen_callback
     begin
       ai_bot = ENV.fetch('AI_BOT').constantize
-      record = AigcWebhook.create!(data: request.body.read)
+      record = AigcWebhook.create!(data: request.body.read, headers: request.headers.read)
 
       if ai_bot === Bot::MiniMax
         rst = ai_bot.webhook_callback(params, record)
@@ -71,7 +71,7 @@ class Api::V1::AiController < UsageController
           render json: rst
         end
       else
-        AigcCallbackJob.perform_later(params, record)
+        AigcCallbackJob.perform_later(record)
         head :ok
 
       end

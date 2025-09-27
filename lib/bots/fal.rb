@@ -34,9 +34,10 @@ module Bot
       end
     end
 
-    def callback(payload, record)
+    def callback(record)
       # return if payload['status'] != 'OK'
 
+      payload = record.data
       request_id = payload['request_id']
       ai_call = AiCall.find_by_task_id(request_id)
 
