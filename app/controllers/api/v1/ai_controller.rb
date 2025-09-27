@@ -1,10 +1,33 @@
 require 'bot'
 
 class Api::V1::AiController < UsageController
-  skip_around_action :check_credits, only: [:ai_call_info, :gen_callback, :gen_task_status]
+  skip_around_action :check_credits, only: [:ai_call_info, :gen_callback, :gen_task_status, :generate_presigned_url]
   skip_before_action :check_if_maintenance_mode, only: [:ai_call_info, :gen_callback, :gen_task_status]
 
+  def generate_presigned_url
+    # 安全验证文件类型
+    # content_type = Mime::Types.type_for(params[:filename]).first.to_s
+    # allowed_types = ['image/jpeg', 'image/png', 'image/gif']
+    #
+    # unless allowed_types.include?(content_type)
+    #   return render json: { error: '不支持的文件类型' }, status: 400
+    # end
 
+    object_key = "uploads/#{SecureRandom.uuid}-#{params[:filename]}"
+
+    presigned_url = R2_PRESIGNER.presigned_url(
+      :put_object,
+      bucket: ENV.fetch('R2_BUCKET'),
+      key: object_key,
+      expires_in: 300 # 5 min
+    )
+
+    render json: {
+      presigned_url: presigned_url,
+      object_key: object_key,
+      public_url: "https://#{ENV['R2_PUBLIC_DOMAIN']}/#{object_key}"
+    }
+  end
 
   def gen_image
     type = params['type']
@@ -26,11 +49,10 @@ class Api::V1::AiController < UsageController
       input: params,
       "cost_credits": current_cost_credits)
 
-
     AigcJob.perform_later(ai_call.id,
-                          {model_name: model_name, image: image,
-                           type: type,
-                           prompt: prompt
+                          { model_name: model_name, image: image,
+                            type: type,
+                            prompt: prompt
                           })
 
     render json: {
@@ -136,6 +158,5 @@ class Api::V1::AiController < UsageController
   end
 
   private
-
 
 end
