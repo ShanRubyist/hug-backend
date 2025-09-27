@@ -1,0 +1,5 @@
+:queues:
+  - critical    # 最高优先级（权重最高）
+  - high        # 高优先级
+  - default     # 默认优先级
+  - low         # 低优先级
