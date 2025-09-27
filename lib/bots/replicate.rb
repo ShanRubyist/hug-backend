@@ -1,3 +1,5 @@
+require 'bot'
+
 module Bot
   class Replicate < AIModel
     def initialize
