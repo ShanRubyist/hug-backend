@@ -74,9 +74,9 @@ module Bot
       end
     end
 
-    def polling(ai_call, task_id, image)
+    def polling(ai_call, task_id, images_nouse)
       # query task status
-      images = query_image_task(task_id) do |h|
+      image = query_image_task(task_id) do |h|
         ai_call.update_ai_call_status(h)
       end
 
@@ -85,8 +85,8 @@ module Bot
       SaveToOssJob.perform_later(ai_call,
                                  :generated_media,
                                  {
-                                   io: images.first,
-                                   filename: URI(image).path.split('/').last,
+                                   io: image,
+                                   filename: SecureRandom.uuid.to_s,
                                    content_type: "image/jpeg"
                                  }
       )

@@ -16,7 +16,7 @@ class AigcJob < ApplicationJob
       ai_call.api_logs.create(input:input, data: response, task_id: task_id)
     end
 
-    ai_bot.polling(ai_call, task_id, image) if is_polling
+    ai_bot.polling(ai_call, task_id, images) if is_polling
   end
 
   private
