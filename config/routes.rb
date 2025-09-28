@@ -2,9 +2,9 @@ Rails.application.routes.draw do
   mount_devise_token_auth_for 'User', at: 'auth', controllers:
     { omniauth_callbacks: 'users/omniauth_callbacks' }
 
-  # require 'sidekiq/web'
+  require 'sidekiq/web'
   # authenticate :user, lambda { |u| u.admin? } do
-  #   mount Sidekiq::Web => '/sidekiq'
+    mount Sidekiq::Web => '/sidekiq'
   # end
 
   mount ReplicateRails::Engine => "/replicate/webhook"
@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       post 'log_client_error', to: 'info#log_client_error'
       get 'active_subscription_info', to: 'info#active_subscription_info', as: 'active_subscription_info'
 
+      post 'generate_presigned_url', to: 'ai#generate_presigned_url'
       post 'gen_image', to: 'ai#gen_image'
       post 'gen_video', to: 'ai#gen_video'
       get 'gen_task_status', to: 'ai#gen_task_status'

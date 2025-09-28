@@ -13,7 +13,7 @@ module Bot
       version = model.latest_version
 
       prediction = version.predict(prompt: prompt, aspect_ratio: aspect_ratio, disable_safety_checker: true,
-                                   image: options.fetch(:image),
+                                   image_input: options.fetch(:image_input),
       # go_fast: true,
       # guidance_scale: 10,
       # prompt_strength: 0.77,

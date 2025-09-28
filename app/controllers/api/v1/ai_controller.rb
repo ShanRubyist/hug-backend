@@ -30,16 +30,14 @@ class Api::V1::AiController < UsageController
   end
 
   def gen_image
-    type = params['type']
-    raise 'type can not be empty' unless type.present?
-
-    prompt = params['prompt'] || 'GHBLI anime style photo'
+    prompt = params['prompt']
     raise 'prompt can not be empty' unless prompt.present?
 
-    image = params['image']
-    raise 'image can not be empty' unless image.present?
+    images = params['images']
+    raise 'image can not be empty' unless images.present?
 
-    model_name = 'aaronaftab/mirage-ghibli'
+    # model_name = 'aaronaftab/mirage-ghibli'
+    model_name = 'google/nano-banana'
 
     conversation = current_user.conversations.create
     ai_call = conversation.ai_calls.create(
@@ -50,8 +48,7 @@ class Api::V1::AiController < UsageController
       "cost_credits": current_cost_credits)
 
     AigcJob.perform_later(ai_call.id,
-                          { model_name: model_name, image: image,
-                            type: type,
+                          { model_name: model_name, images: images,
                             prompt: prompt
                           })
 
