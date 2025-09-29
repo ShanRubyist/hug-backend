@@ -35,7 +35,9 @@ class AigcPollingJob < ApplicationJob
       # 任务仍在处理中
       if current_attempt < MAX_ATTEMPTS
         # 安排下一次检查
-        AigcPollingJob.set(POLL_INTERVAL.seconds).perform_later(ai_call_id, task_id, current_attempt + 1)
+        AigcPollingJob
+          .set(wait: POLL_INTERVAL.seconds)
+          .perform_later(ai_call_id, task_id, current_attempt + 1)
       else
         # 超过最大尝试次数，视为超时失败
         handle_failure("Polling timed out after #{MAX_ATTEMPTS} attempts.")
