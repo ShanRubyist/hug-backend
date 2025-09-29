@@ -3,6 +3,8 @@ class SaveToOssJob < ApplicationJob
 
   def perform(ai_call_id, type = :generated_media, args)
     media = args.fetch(:io)
+    media = media.first if media === Array
+    
     io = case media
          when String
            require 'open-uri'
