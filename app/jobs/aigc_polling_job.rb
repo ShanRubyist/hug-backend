@@ -4,9 +4,9 @@ class AigcPollingJob < ApplicationJob
   queue_as :high
 
   # 最大轮询次数，避免无限循环
-  MAX_ATTEMPTS = 30
+  MAX_ATTEMPTS = 100
   # 轮询间隔，单位：秒（可根据API预期速度调整）
-  POLL_INTERVAL = 5
+  POLL_INTERVAL = 10
 
   def perform(ai_call_id, task_id, current_attempt = 1)
     ai_call = AiCall.find_by_id(ai_call_id)
