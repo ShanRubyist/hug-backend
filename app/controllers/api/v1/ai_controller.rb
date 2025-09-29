@@ -1,8 +1,8 @@
 require 'bot'
 
 class Api::V1::AiController < UsageController
-  skip_around_action :check_credits, only: [:ai_call_info, :gen_callback, :gen_task_status, :generate_presigned_url]
-  skip_before_action :check_if_maintenance_mode, only: [:ai_call_info, :gen_callback, :gen_task_status]
+  skip_around_action :check_credits, only: [:ai_call_info, :gen_callback, :task_status, :generate_presigned_url]
+  skip_before_action :check_if_maintenance_mode, only: [:ai_call_info, :gen_callback, :task_status]
 
   def generate_presigned_url
     # 安全验证文件类型
@@ -36,47 +36,48 @@ class Api::V1::AiController < UsageController
     images = params['images']
     raise 'image can not be empty' unless images.present?
 
-    # model_name = 'aaronaftab/mirage-ghibli'
-    model_name = 'google/nano-banana'
+    model_name = 'aaronaftab/mirage-ghibli'
+    # model_name = 'google/nano-banana'
 
     conversation = current_user.conversations.create
     ai_call = conversation.ai_calls.create(
-      task_id: SecureRandom.uuid,
       prompt: prompt,
       status: 'submit',
       input: params,
       "cost_credits": current_cost_credits)
 
-    AigcJob.perform_later(ai_call.id,
-                          { model_name: model_name, images: images,
-                            prompt: prompt
-                          })
+    AigcGenerateJob.perform_later(ai_call.id,
+                                  {
+                                    model_name: model_name,
+                                    prompt: prompt,
+                                    image: images,
+                                  })
 
     render json: {
       id: ai_call.id
     }
   end
 
-  def gen_video
-    conversation = current_user.conversations.create
-    prompt = params['prompt']
-
-    # generate video task
-    task_id = ai_bot.generate_video(prompt)
-
-    task_id = task_id.id if ai_bot.class == Bot::Replicate
-
-    ai_call = conversation.ai_calls.create(
-      task_id: task_id,
-      prompt: params[:prompt],
-      status: 'submit',
-      input: params,
-      "cost_credits": current_cost_credits)
-
-    render json: {
-      task_id: task_id
-    }
-  end
+  # def gen_video
+  #   conversation = current_user.conversations.create
+  #   prompt = params['prompt']
+  #
+  #   # generate video task
+  #   task_id = ai_bot.generate_video(prompt)
+  #
+  #   task_id = task_id.id if ai_bot.class == Bot::Replicate
+  #
+  #   ai_call = conversation.ai_calls.create(
+  #     task_id: task_id,
+  #     prompt: params[:prompt],
+  #     status: 'submit',
+  #     input: params,
+  #     "cost_credits": current_cost_credits)
+  #
+  #   render json: {
+  #     task_id: task_id
+  #   }
+  # end
 
   def gen_callback
     begin
@@ -99,7 +100,7 @@ class Api::V1::AiController < UsageController
     end
   end
 
-  def gen_task_status
+  def task_status
     id = params['id']
     ai_call = AiCall.find_by_id(id)
 

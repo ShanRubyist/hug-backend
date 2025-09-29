@@ -46,35 +46,35 @@ module Bot
       prediction.id
     end
 
-    def callback(webhook_record)
-      prediction = webhook_record.data
-      return unless prediction.succeeded? || prediction.failed? || prediction.canceled?
-
-      ai_call = AiCall.find_by_task_id(prediction.id)
-
-      if ai_call
-        ai_call.update!(
-          status: prediction.status,
-          data: prediction
-        )
-        if prediction.succeeded?
-          video = prediction.output
-          # OSS
-          require 'open-uri'
-          SaveToOssJob.perform_later(ai_call,
-                                   :generated_media,
-                                   {
-                                     io: video,
-                                     filename: URI(video).path.split('/').last,
-                                     content_type: "video/mp4"
-                                   }
-          )
-        end
-        webhook_record.destroy
-      else
-        fail "[Replicate]task id not exist"
-      end
-    end
+    # def callback(webhook_record)
+    #   prediction = webhook_record.data
+    #   return unless prediction.succeeded? || prediction.failed? || prediction.canceled?
+    #
+    #   ai_call = AiCall.find_by_task_id(prediction.id)
+    #
+    #   if ai_call
+    #     ai_call.update!(
+    #       status: prediction.status,
+    #       data: prediction
+    #     )
+    #     if prediction.succeeded?
+    #       video = prediction.output
+    #       # OSS
+    #       require 'open-uri'
+    #       SaveToOssJob.perform_later(ai_call,
+    #                                :generated_media,
+    #                                {
+    #                                  io: video,
+    #                                  filename: URI(video).path.split('/').last,
+    #                                  content_type: "video/mp4"
+    #                                }
+    #       )
+    #     end
+    #     webhook_record.destroy
+    #   else
+    #     fail "[Replicate]task id not exist"
+    #   end
+    # end
 
     def query_image_task_api(id, &block)
       prediction = ::Replicate.client.retrieve_prediction(id)
