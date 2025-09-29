@@ -39,7 +39,7 @@ Rails.application.routes.draw do
       post 'generate_presigned_url', to: 'ai#generate_presigned_url'
       post 'gen_image', to: 'ai#gen_image'
       post 'gen_video', to: 'ai#gen_video'
-      get 'gen_task_status', to: 'ai#gen_task_status'
+      get 'task_status', to: 'ai#task_status'
       get 'ai_call_info', to: 'ai#ai_call_info'
 
       resources :info do

@@ -4,6 +4,7 @@ class AigcCallbackJob < ApplicationJob
   queue_as :high
 
   def perform(record)
+    # TODO:     ai_call.update_ai_call_status(result)
     ai_bot.webhook_callback(record)
   end
 

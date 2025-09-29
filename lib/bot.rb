@@ -5,43 +5,43 @@ module Bot
       @api_base_url = api_base_url
     end
 
-    def generate_text(message, options = {}, &block)
-      text_api(message, options) do |chunk, _overall_received_bytes, _env|
-        fail chunk.to_s if _env && _env.status != 200
+    # def generate_text(message, options = {}, &block)
+    #   text_api(message, options) do |chunk, _overall_received_bytes, _env|
+    #     fail chunk.to_s if _env && _env.status != 200
+    #
+    #     if options.fetch(:stream, false)
+    #       rst = text_resp(chunk)
+    #       if rst.is_a?(Array)
+    #         rst.each { |item| yield item, chunk }
+    #       elsif rst
+    #         yield rst, chunk
+    #       end
+    #     end
+    #   end
+    # end
 
-        if options.fetch(:stream, false)
-          rst = text_resp(chunk)
-          if rst.is_a?(Array)
-            rst.each { |item| yield item, chunk }
-          elsif rst
-            yield rst, chunk
-          end
-        end
-      end
-    end
-
-    def generate_image(message, options = {}, &block)
-      image_api(message, options, &block)
+    def generate_image(prompt, options = {}, &block)
+      image_api(prompt, options, &block)
     end
 
     def query_image_task(task_id, &block)
       rst = {}
       while true
         rst = query_image_task_api(task_id)
-        yield rst
-        break if rst[:image]
+        yield rst if block_given?
+        break if rst[:media]
         sleep 1
       end
-      rst[:image]
+      rst[:media]
     end
 
     def generate_audio(message, options = {}, &block)
       audio_api(message, options)
     end
 
-    def generate_video(message, options = {})
-      task_id = video_api(message, options)
-    end
+    # def generate_video(message, options = {})
+    #   task_id = video_api(message, options)
+    # end
 
     # def query_video_task(task_id, &block)
     #   rst = {}
@@ -54,13 +54,9 @@ module Bot
     #   rst[:video]
     # end
 
-    def webhook_callback(record)
-      callback(record)
-    end
-
-    def polling(ai_call, task_id, image)
-      polling(ai_call, task_id, image)
-    end
+    # def webhook_callback(record)
+    #   callback(record)
+    # end
 
     private
 

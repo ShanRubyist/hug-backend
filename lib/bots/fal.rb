@@ -50,7 +50,7 @@ module Bot
         if payload['status'] == 'OK'
           # OSS
           require 'open-uri'
-          SaveToOssJob.perform_now(ai_call,
+          SaveToOssJob.perform_later(ai_call,
                                      :generated_media,
                                      {
                                        io: payload['video'],

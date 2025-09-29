@@ -5,15 +5,35 @@ module Bot
     def initialize
     end
 
+    # def video_api(prompt, options = {})
+    #   model_name = options.fetch(:model_name, 'kwaivgi/kling-v1.6-standard')
+    #   model = ::Replicate.client.retrieve_model(model_name)
+    #
+    #   version = model.latest_version
+    #   webhook_url = "https://" + ENV.fetch("HOST") + "/replicate/webhook"
+    #
+    #   prediction = version.predict(
+    #     {
+    #       prompt: prompt,
+    #       # image: options.fetch(:image),
+    #     },
+    #     webhook_url
+    #   )
+    #
+    #   prediction
+    # end
+
     def image_api(prompt, options = {}, &block)
-      aspect_ratio = options.fetch(:aspect_ratio, '1:1')
       model_name = options.fetch(:model_name)
       model = ::Replicate.client.retrieve_model(model_name)
 
       version = model.latest_version
 
-      prediction = version.predict(prompt: prompt, aspect_ratio: aspect_ratio, disable_safety_checker: true,
-                                   image_input: options.fetch(:image_input),
+      prediction = version.predict(
+        prompt: prompt,
+        **options,
+      # aspect_ratio: aspect_ratio,
+      # disable_safety_checker: true,
       # go_fast: true,
       # guidance_scale: 10,
       # prompt_strength: 0.77,
@@ -23,25 +43,7 @@ module Bot
 
       yield(prediction) if block_given?
 
-      prediction
-    end
-
-    def video_api(prompt, options = {})
-      model_name = options.fetch(:model_name, 'kwaivgi/kling-v1.6-standard')
-      model = ::Replicate.client.retrieve_model(model_name)
-
-      version = model.latest_version
-      webhook_url = "https://" + ENV.fetch("HOST") + "/replicate/webhook"
-
-      prediction = version.predict(
-        {
-          prompt: prompt,
-          # image: options.fetch(:image),
-        },
-        webhook_url
-      )
-
-      prediction
+      prediction.id
     end
 
     def callback(webhook_record)
@@ -59,13 +61,13 @@ module Bot
           video = prediction.output
           # OSS
           require 'open-uri'
-          SaveToOssJob.perform_now(ai_call,
-                                     :generated_media,
-                                     {
-                                       io: video,
-                                       filename: URI(video).path.split('/').last,
-                                       content_type: "video/mp4"
-                                     }
+          SaveToOssJob.perform_later(ai_call,
+                                   :generated_media,
+                                   {
+                                     io: video,
+                                     filename: URI(video).path.split('/').last,
+                                     content_type: "video/mp4"
+                                   }
           )
         end
         webhook_record.destroy
@@ -74,44 +76,31 @@ module Bot
       end
     end
 
-    def polling(ai_call, task_id, images_nouse)
-      # query task status
-      image = query_image_task(task_id) do |h|
-        ai_call.update_ai_call_status(h)
-      end
+    def query_image_task_api(id, &block)
+      prediction = ::Replicate.client.retrieve_prediction(id)
 
-      # OSS
-      require 'open-uri'
-      SaveToOssJob.perform_later(ai_call,
-                                 :generated_media,
-                                 {
-                                   io: image,
-                                   filename: SecureRandom.uuid.to_s,
-                                   content_type: "image/jpeg"
-                                 }
-      )
-    end
-
-    private
-
-    def query_image_task_api(prediction)
       data = prediction.refetch
 
       if prediction.succeeded?
-        return {
+        rst =  {
           status: 'success',
-          image: prediction.output,
+          media: prediction.output,
           data: data
         }
       elsif prediction.failed? || prediction.canceled?
         fail 'generate image failed or canceled:' + data.fetch('error')
       else
-        return {
+        rst =  {
           status: data['status'],
-          image: prediction&.output,
+          media: prediction&.output,
           data: data
         }
       end
+
+      yield(rst) if block_given?
+
+      return rst
+
     end
   end
 end

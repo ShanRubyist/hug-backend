@@ -45,7 +45,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_20_120819) do
 
   create_table "ai_calls", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "conversation_id", null: false
-    t.string "task_id", null: false
+    t.string "task_id"
     t.string "prompt", null: false
     t.string "status", null: false
     t.json "input", null: false
@@ -67,7 +67,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_20_120819) do
 
   create_table "api_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "ai_call_id", null: false
-    t.string "task_id"
     t.json "input", null: false
     t.json "data"
     t.datetime "created_at", null: false
