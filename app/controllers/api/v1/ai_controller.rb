@@ -36,8 +36,8 @@ class Api::V1::AiController < UsageController
     images = params['images']
     raise 'image can not be empty' unless images.present?
 
-    model_name = 'aaronaftab/mirage-ghibli'
-    # model_name = 'google/nano-banana'
+    # model_name = 'aaronaftab/mirage-ghibli'
+    model_name = 'google/nano-banana'
 
     conversation = current_user.conversations.create
     ai_call = conversation.ai_calls.create(
@@ -50,7 +50,7 @@ class Api::V1::AiController < UsageController
                                   {
                                     model_name: model_name,
                                     prompt: prompt,
-                                    image: images,
+                                    image_input: images,
                                   })
 
     render json: {
