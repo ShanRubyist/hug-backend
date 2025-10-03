@@ -8,8 +8,9 @@ class AigcPollingJob < ApplicationJob
   # 轮询间隔，单位：秒（可根据API预期速度调整）
   POLL_INTERVAL = 10
 
-  def perform(ai_call_id, task_id, current_attempt = 1)
+  def perform(ai_call_id, current_attempt = 1)
     ai_call = AiCall.find_by_id(ai_call_id)
+    task_id = ai_call.task_id
 
     result = ai_bot.query_image_task_api(task_id) do |h|
       ai_call.api_logs.create(input: { task_id: task_id }, data: h)
@@ -37,7 +38,7 @@ class AigcPollingJob < ApplicationJob
         # 安排下一次检查
         AigcPollingJob
           .set({wait: POLL_INTERVAL.seconds})
-          .perform_later(ai_call_id, task_id, current_attempt + 1)
+          .perform_later(ai_call_id, current_attempt + 1)
       else
         # 超过最大尝试次数，视为超时失败
         handle_failure("Polling timed out after #{MAX_ATTEMPTS} attempts.")

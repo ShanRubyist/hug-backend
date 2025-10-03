@@ -15,7 +15,7 @@ class AigcGenerateJob < ApplicationJob
 
     ai_call.update(task_id: task_id)
 
-    AigcPollingJob.perform_later(ai_call_id, task_id) if is_polling
+    AigcPollingJob.perform_later(ai_call_id) if is_polling
   end
 
   private
