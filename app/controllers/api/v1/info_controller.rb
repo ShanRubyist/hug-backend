@@ -21,6 +21,7 @@ class Api::V1::InfoController < ApplicationController
     render json: {
       has_payment: ENV.fetch('HAS_PAYMENT') == 'true' ? true : false,
       payment_processor: ENV.fetch('PAYMENT_PROCESSOR'),
+      is_ready: ENV.fetch('PAYMENT_IS_READY'),
       paddle_billing_environment: ENV.fetch('PADDLE_BILLING_ENVIRONMENT'),
       paddle_billing_client_token: ENV.fetch('PADDLE_BILLING_CLIENT_TOKEN'),
       price_1: ENV.fetch('PRICE_1'),
