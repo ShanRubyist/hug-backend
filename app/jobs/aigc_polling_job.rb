@@ -28,15 +28,15 @@ class AigcPollingJob < ApplicationJob
                                    content_type: "image/jpeg"
                                  }
       )
-    when 'failed' || 'canceled'
+    when 'failed', 'canceled'
       # 任务失败：记录错误
       handle_failure(result[:data])
-    when 'processing' || 'starting'
+    when 'processing', 'starting'
       # 任务仍在处理中
       if current_attempt < MAX_ATTEMPTS
         # 安排下一次检查
         AigcPollingJob
-          .set(wait: POLL_INTERVAL.seconds)
+          .set({wait: POLL_INTERVAL.seconds})
           .perform_later(ai_call_id, task_id, current_attempt + 1)
       else
         # 超过最大尝试次数，视为超时失败
