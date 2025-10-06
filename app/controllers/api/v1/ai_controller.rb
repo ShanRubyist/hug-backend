@@ -39,14 +39,12 @@ class Api::V1::AiController < UsageController
     # model_name = 'aaronaftab/mirage-ghibli'
     model_name = 'google/nano-banana'
 
-    conversation = current_user.conversations.create
-    ai_call = conversation.ai_calls.create(
+    @ai_call.update(
       prompt: prompt,
-      status: 'submit',
       input: params,
-      "cost_credits": current_cost_credits)
+      )
 
-    AigcGenerateJob.perform_later(ai_call.id,
+    AigcGenerateJob.perform_later(@ai_call.id,
                                   {
                                     model_name: model_name,
                                     prompt: prompt,
@@ -54,7 +52,7 @@ class Api::V1::AiController < UsageController
                                   })
 
     render json: {
-      id: ai_call.id
+      id: @ai_call.id
     }
   end
 
