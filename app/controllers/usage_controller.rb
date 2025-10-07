@@ -6,9 +6,8 @@ class UsageController < ApplicationController
   include CreditsCounter
   include DistributedLock
 
-  def credits_enough?(current_cost_credits)
-    raise NotImplementedError, "You must define #current_cost_credits in #{self.class}" unless defined?(:current_cost_credits)
-    (left_credits(current_user) >= current_cost_credits) || subscription_valid?
+  def credits_enough?(required_credits)
+    (left_credits(current_user) >= required_credits) || subscription_valid?
   end
 
   private
@@ -33,16 +32,16 @@ class UsageController < ApplicationController
       if credits_enough?(current_cost_credits)
         conversation = current_user.conversations.create
         @ai_call = conversation.ai_calls.create(
-          prompt: '',
+          prompt: params[:prompt] || '',
           status: 'submit',
-          input: {},
+          input: params[:input] || {},
           "cost_credits": current_cost_credits)
 
         reserved = reserve_locked_credits(locked_credits_key, @ai_call.id, current_cost_credits)
         raise "lock credit fail" unless reserved.is_a?(Integer)
       else
         render json: {
-          message: 'You do not has enough credits'
+          message: 'You do not have enough credits'
         }.to_json, status: 403
         return
       end
@@ -55,14 +54,14 @@ class UsageController < ApplicationController
   # TODO: 需要编辑
   def current_cost_credits
     case params[:model]
-    when nil
-      1
-    when 'black-forest-labs/flux-schnell'
+    when nil, 'black-forest-labs/flux-schnell'
       1
     when 'black-forest-labs/flux-dev'
       10
     when 'black-forest-labs/flux-pro'
       20
+    else
+      1 # 或者抛出异常
     end
   end
 end

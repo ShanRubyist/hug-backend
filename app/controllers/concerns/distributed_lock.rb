@@ -36,7 +36,11 @@ module DistributedLock
   private
 
   def redis_client
-    @@redis_client ||= Redis.new(url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" })
+    if block_given?
+      RedisClient.with { |conn| yield conn }
+    else
+      RedisClient.instance
+    end
   end
 
   def release_lock(lock_key, lock_value)
