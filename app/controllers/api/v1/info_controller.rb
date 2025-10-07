@@ -1,8 +1,6 @@
 class Api::V1::InfoController < ApplicationController
-  # before_action :authenticate_user!, only: [:user_info, :active_subscription_info]
-  def current_user
-    User.first
-  end
+  before_action :authenticate_user!, only: [:user_info, :active_subscription_info]
+
   include CreditsCounter
   include PayUtils
 
