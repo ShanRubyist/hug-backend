@@ -9,6 +9,7 @@ class AigcPollingJob < ApplicationJob
   POLL_INTERVAL = 10
 
   def perform(ai_call_id, current_attempt = 1)
+    sleep 100
     ai_call = AiCall.find_by_id(ai_call_id)
     task_id = ai_call.task_id
 
