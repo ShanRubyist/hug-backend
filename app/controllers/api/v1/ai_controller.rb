@@ -30,26 +30,27 @@ class Api::V1::AiController < UsageController
   end
 
   def gen_image
+    sleep 10
     prompt = params['prompt']
-    raise 'prompt can not be empty' unless prompt.present?
+    # raise 'prompt can not be empty' unless prompt.present?
 
     images = params['images']
-    raise 'image can not be empty' unless images.present?
+    # raise 'image can not be empty' unless images.present?
 
     # model_name = 'aaronaftab/mirage-ghibli'
     model_name = 'google/nano-banana'
 
     @ai_call.update(
-      prompt: prompt,
+      # prompt: prompt,
       input: params,
       )
 
-    AigcGenerateJob.perform_later(@ai_call.id,
-                                  {
-                                    model_name: model_name,
-                                    prompt: prompt,
-                                    image_input: images,
-                                  })
+    # AigcGenerateJob.perform_later(@ai_call.id,
+    #                               {
+    #                                 model_name: model_name,
+    #                                 prompt: prompt,
+    #                                 image_input: images,
+    #                               })
 
     render json: {
       id: @ai_call.id
