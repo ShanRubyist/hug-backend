@@ -3,7 +3,7 @@ class ApplicationController < ActionController::API
   include Pundit::Authorization
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
-  rescue_from StandardError, with: :log_error_and_respond
+  # rescue_from StandardError, with: :log_error_and_respond
 
   before_action :cors_set_access_control_headers
   before_action :set_locale

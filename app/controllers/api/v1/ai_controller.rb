@@ -31,16 +31,16 @@ class Api::V1::AiController < UsageController
 
   def gen_image
     prompt = params['prompt']
-    raise 'prompt can not be empty' unless prompt.present?
+    # raise 'prompt can not be empty' unless prompt.present?
 
     images = params['images']
-    raise 'image can not be empty' unless images.present?
+    # raise 'image can not be empty' unless images.present?
 
     # model_name = 'aaronaftab/mirage-ghibli'
     model_name = 'google/nano-banana'
 
     @ai_call.update(
-      prompt: prompt,
+      # prompt: prompt,
       input: params,
       )
 

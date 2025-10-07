@@ -1,8 +1,10 @@
 class UsageController < ApplicationController
-  before_action :authenticate_user!
+  # before_action :authenticate_user!
   before_action :check_if_maintenance_mode
   around_action :check_credits
-
+  def current_user
+    User.first
+  end
   include CreditsCounter
   include DistributedLock
 
@@ -29,6 +31,7 @@ class UsageController < ApplicationController
     @ai_call = nil
 
     with_redis_lock(current_user.id) do
+      sleep 30
       if credits_enough?(current_cost_credits)
         conversation = current_user.conversations.create
         @ai_call = conversation.ai_calls.create(
