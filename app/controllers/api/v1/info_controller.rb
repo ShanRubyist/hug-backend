@@ -14,6 +14,7 @@ class Api::V1::InfoController < ApplicationController
       created_at: current_user.created_at,
       updated_at: current_user.updated_at,
       credits: left_credits(current_user),
+      lock_credits: current_locked_credits("users_locked_credits:#{current_user.id}")
     }.to_json
   end
 
