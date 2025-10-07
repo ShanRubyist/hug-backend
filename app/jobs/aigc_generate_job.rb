@@ -9,13 +9,13 @@ class AigcGenerateJob < ApplicationJob
 
     ai_call = AiCall.find_by_id(ai_call_id)
 
-    # task_id = ai_bot.generate_image(prompt, **args) do |h|
-    #   ai_call.api_logs.create(input:args, data: h)
-    # end
-    #
-    # ai_call.update(task_id: task_id)
-    #
-    # AigcPollingJob.perform_later(ai_call_id) if is_polling
+    task_id = ai_bot.generate_image(prompt, **args) do |h|
+      ai_call.api_logs.create(input:args, data: h)
+    end
+
+    ai_call.update(task_id: task_id)
+
+    AigcPollingJob.perform_later(ai_call_id) if is_polling
   end
 
   private
