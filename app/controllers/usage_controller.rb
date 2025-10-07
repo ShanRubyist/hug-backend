@@ -1,10 +1,8 @@
 class UsageController < ApplicationController
-  # before_action :authenticate_user!
+  before_action :authenticate_user!
   before_action :check_if_maintenance_mode
   around_action :check_credits
-  def current_user
-    User.first
-  end
+
   include CreditsCounter
   include DistributedLock
 
