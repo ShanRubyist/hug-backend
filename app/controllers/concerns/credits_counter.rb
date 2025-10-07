@@ -7,11 +7,15 @@ module CreditsCounter
   def total_credits(user)
     user.charges
         .where("amount_refunded is null or amount_refunded = 0")
-        .inject(0) { |sum, item| sum + item.metadata.fetch("credits").to_i }
+        .inject(0) { |sum, item| sum + item.metadata.fetch("credits", 0).to_i }
+
   end
 
   def total_used_credits(user)
-    user.conversations.inject(0) { |sum, item| sum + used_credits(item) }
+    user.conversations
+        .joins(:ai_calls)
+        .merge(AiCall.succeeded_ai_calls)
+        .sum('ai_calls.cost_credits')
   end
 
   def left_credits(user)
@@ -31,20 +35,22 @@ module CreditsCounter
     return credits
   end
 
-  def used_credits(conversation)
-    conversation.ai_calls.succeeded_ai_calls.sum(:cost_credits)
-  end
-
   def current_locked_credits(locked_credits_key)
-    # Get total locked credits for the user
-    # This includes both general locked credits and generation-specific locked credits
-    total_locked = redis_client.get(locked_credits_key).to_i
+    pattern = "#{locked_credits_key}:generation:*"
+    cursor = "0"
+    total = 0
 
-    # Get all generation-specific locked credits for this user
-    generation_keys = redis_client.keys("#{locked_credits_key}:generation:*")
-    generation_locked = generation_keys.sum { |key| redis_client.get(key).to_i }
+    # 使用SCAN代替KEYS
+    loop do
+      cursor, keys = redis_client.scan(cursor, match: pattern, count: 100)
+      total += keys.sum { |key| redis_client.get(key).to_i }
+      break if cursor == "0"
+    end
 
-    total_locked + generation_locked
+    total
+  rescue Redis::BaseError => e
+    Rails.logger.error("Redis error in current_locked_credits: #{e.message}")
+    0 # 降级处理
   end
 
   # 预扣积分（图片生成开始时）
@@ -71,7 +77,7 @@ module CreditsCounter
 
 
   def redis_client
-    Redis.new(url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" })
+    @@redis_client ||= Redis.new(url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" })
   end
 
   module ClassMethods
